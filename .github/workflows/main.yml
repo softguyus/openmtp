@@ -22,17 +22,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          export NODE_OPTIONS=--openssl-legacy-provider
           yarn install --ignore-engines
 
       - name: Build OpenMTP (main & renderer)
         run: |
-          export NODE_OPTIONS=--openssl-legacy-provider
           yarn build
 
       - name: Package Mac ARM64
         run: |
-          export NODE_OPTIONS=--openssl-legacy-provider
           export CSC_IDENTITY_AUTO_DISCOVERY=false
           yarn package-mac-arm64-without-notarize
 
