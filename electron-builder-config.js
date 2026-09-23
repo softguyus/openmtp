@@ -4,7 +4,11 @@ const OS_ARCH_TYPE = {
 };
 
 const getBinariesSupportedSystemArchitecture = () => {
-  if (process.arch === 'arm64') {
+  if (
+    process.arch === 'arm64' ||
+    process.env.TARGET_ARCH === 'arm64' ||
+    process.argv.includes('--arm64')
+  ) {
     return OS_ARCH_TYPE.arm64;
   }
 

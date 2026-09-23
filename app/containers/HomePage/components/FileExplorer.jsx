@@ -63,6 +63,7 @@ import {
   makeHideHiddenFiles,
   makeMtpMode,
   makeShowDirectoriesFirst,
+  makeFileConflictPolicy,
 } from '../../Settings/selectors';
 import {
   BUY_ME_A_COFFEE_URL,
@@ -102,6 +103,7 @@ import {
   FILE_TRANSFER_DIRECTION,
   MTP_MODE,
   USB_HOTPLUG_EVENTS,
+  FILE_CONFLICT_POLICY,
 } from '../../../enums';
 import { log } from '../../../utils/log';
 import fileExplorerController from '../../../data/file-explorer/controllers/FileExplorerController';
@@ -183,6 +185,7 @@ class FileExplorer extends Component {
 
     this.initialState = {
       togglePasteConfirmDialog: false,
+      pasteExistCheckResults: [],
       toggleDialog: {
         rename: {
           errors: {
@@ -1708,16 +1711,17 @@ class FileExplorer extends Component {
       storageId,
       fileTransferClipboard,
       actionCreateThrowError,
+      fileConflictPolicy,
     } = this.props;
 
-    let { queue } = fileTransferClipboard;
+    const { queue } = fileTransferClipboard;
     const destinationFolder = currentBrowsePath[deviceType];
     let invalidFileNameFlag = false;
     const deviceTypeUpperCase = deviceType.toUpperCase();
 
-    queue = queue.map((a) => {
+    const destQueue = queue.map((a) => {
       const _baseName = baseName(a);
-      const fullPath = `${destinationFolder}/${_baseName}`;
+      const fullPath = sanitizePath(`${destinationFolder}/${_baseName}`);
 
       if (fullPath.trim() === '' || /[\\:]/g.test(fullPath)) {
         invalidFileNameFlag = true;
@@ -1739,13 +1743,31 @@ class FileExplorer extends Component {
       return null;
     }
 
-    if (
-      await fileExplorerController.filesExist({
-        deviceType,
-        fileList: queue,
-        storageId,
-      })
-    ) {
+    const existResults = await fileExplorerController.checkFilesExist({
+      deviceType,
+      fileList: destQueue,
+      storageId,
+    });
+
+    const hasExistingFiles = (existResults || []).some((a) => a.exists);
+
+    if (hasExistingFiles) {
+      this.setState({
+        pasteExistCheckResults: existResults,
+      });
+
+      if (fileConflictPolicy === FILE_CONFLICT_POLICY.skip) {
+        this._handlePasteConfirm('skip');
+
+        return null;
+      }
+
+      if (fileConflictPolicy === FILE_CONFLICT_POLICY.replace) {
+        this._handlePasteConfirm(true);
+
+        return null;
+      }
+
       analyticsService.sendEvent(
         EVENT_TYPE[`${deviceTypeUpperCase}_PASTE_FILES_DIALOG_OPEN`],
         {
@@ -1769,13 +1791,15 @@ class FileExplorer extends Component {
       storageId,
       actionCreatePaste,
       fileTransferClipboard,
+      actionCreateThrowError,
     } = this.props;
+    const { pasteExistCheckResults } = this.state;
     const destinationFolder = currentBrowsePath[deviceType];
 
     this._handleTogglePasteConfirmDialog(false);
     const deviceTypeUpperCase = deviceType.toUpperCase();
 
-    if (!confirm) {
+    if (!confirm || confirm === 'cancel') {
       analyticsService.sendEvent(
         EVENT_TYPE[`${deviceTypeUpperCase}_PASTE_FILES_DIALOG_CLOSE`],
         {
@@ -1786,11 +1810,50 @@ class FileExplorer extends Component {
       return null;
     }
 
+    let finalClipboard = fileTransferClipboard;
+
+    if (confirm === 'skip') {
+      const existMap = new Map();
+
+      if (Array.isArray(pasteExistCheckResults)) {
+        pasteExistCheckResults.forEach((item) => {
+          existMap.set(item.fullpath, item.exists);
+        });
+      }
+
+      const filteredQueue = fileTransferClipboard.queue.filter(
+        (sourcePath, index) => {
+          const destPath = sanitizePath(
+            `${destinationFolder}/${baseName(sourcePath)}`
+          );
+
+          if (pasteExistCheckResults && pasteExistCheckResults[index]) {
+            return !pasteExistCheckResults[index].exists;
+          }
+
+          return !existMap.get(destPath);
+        }
+      );
+
+      if (filteredQueue.length === 0) {
+        actionCreateThrowError({
+          message: `All items already exist in destination. No new files to transfer.`,
+        });
+
+        return null;
+      }
+
+      finalClipboard = {
+        ...fileTransferClipboard,
+        queue: filteredQueue,
+      };
+    }
+
     actionCreatePaste(
       {
         destinationFolder,
         storageId,
-        fileTransferClipboard,
+        fileTransferClipboard: finalClipboard,
       },
       {
         filePath: destinationFolder,
@@ -2152,8 +2215,12 @@ class FileExplorer extends Component {
         <ConfirmDialog
           fullWidthDialog
           maxWidthDialog="xs"
-          bodyText="Replace and merge the existing items?"
+          titleText="File Conflict"
+          bodyText="Some items already exist in the destination. How would you like to proceed?"
           trigger={togglePasteConfirmDialog}
+          btnPositiveText="Replace All"
+          btnNeutralText="Skip Existing"
+          btnNegativeText="Cancel"
           onClickHandler={this._handlePasteConfirm}
         />
         <FileExplorerBodyRender
@@ -2769,6 +2836,7 @@ const mapStateToProps = (state, _) => {
     mtpMode: makeMtpMode(state),
     enableUsbHotplug: makeEnableUsbHotplug(state),
     showDirectoriesFirst: makeShowDirectoriesFirst(state),
+    fileConflictPolicy: makeFileConflictPolicy(state),
   };
 };
 

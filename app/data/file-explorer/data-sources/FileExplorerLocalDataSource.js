@@ -398,6 +398,49 @@ export class FileExplorerLocalDataSource {
   }
 
   /**
+   * description - Check if files exist in the local disk and return status for each
+   *
+   * @param {[string]} fileList
+   * @return {Promise<[{fullpath: string, exists: boolean}]>}
+   */
+  async checkFilesExist({ fileList }) {
+    try {
+      if (!isArray(fileList) || isEmpty(fileList)) {
+        return [];
+      }
+
+      const results = [];
+
+      for (let i = 0; i < fileList.length; i += 1) {
+        const item = fileList[i];
+        const fullPath = path.resolve(item);
+
+        // eslint-disable-next-line no-await-in-loop
+        await this._requestUsageAccess({
+          filePath: fullPath,
+        });
+
+        // eslint-disable-next-line no-await-in-loop
+        const exists = existsSync(fullPath);
+
+        results.push({
+          fullpath: item,
+          exists: !!exists,
+        });
+      }
+
+      return results;
+    } catch (e) {
+      log.error(e);
+
+      return (fileList || []).map((item) => ({
+        fullpath: item,
+        exists: false,
+      }));
+    }
+  }
+
+  /**
    * description - Check if files exist in the local disk
    *
    * @param {[string]} fileList
@@ -405,37 +448,9 @@ export class FileExplorerLocalDataSource {
    */
   async filesExist({ fileList }) {
     try {
-      if (!isArray(fileList)) {
-        return false;
-      }
+      const results = await this.checkFilesExist({ fileList });
 
-      if (isEmpty(fileList)) {
-        return false;
-      }
-
-      for (let i = 0; i < fileList.length; i += 1) {
-        const item = fileList[i];
-        const fullPath = path.resolve(item);
-
-        // eslint-disable-next-line no-await-in-loop
-        const _accessGranted = await this._requestUsageAccess({
-          filePath: fullPath,
-        });
-
-        if (!_accessGranted) {
-          return {
-            data: null,
-            error: 'Permission denied',
-          };
-        }
-
-        // eslint-disable-next-line no-await-in-loop
-        if (await existsSync(fullPath)) {
-          return true;
-        }
-      }
-
-      return false;
+      return results.some((a) => a.exists);
     } catch (e) {
       log.error(e);
 

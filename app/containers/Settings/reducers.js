@@ -5,6 +5,7 @@ import {
   APP_THEME_MODE_TYPE,
   MTP_MODE,
   FILE_TRANSFER_DIRECTION,
+  FILE_CONFLICT_POLICY,
 } from '../../enums';
 import { checkIf } from '../../utils/checkIf';
 import { isPrereleaseVersion } from '../../utils/funcs';
@@ -40,6 +41,7 @@ export const initialState = {
     [FILE_TRANSFER_DIRECTION.upload]: true,
     [FILE_TRANSFER_DIRECTION.download]: true,
   },
+  fileConflictPolicy: FILE_CONFLICT_POLICY.ask,
 };
 
 export default function Settings(state = initialState, action) {

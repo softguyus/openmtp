@@ -33,3 +33,9 @@ export const USB_HOTPLUG_EVENTS = {
   attach: 'attach',
   detach: 'detach',
 };
+
+export const FILE_CONFLICT_POLICY = {
+  ask: 'ask',
+  skip: 'skip',
+  replace: 'replace',
+};

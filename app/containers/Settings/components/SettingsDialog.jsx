@@ -24,6 +24,7 @@ import {
   APP_THEME_MODE_TYPE,
   MTP_MODE,
   FILE_TRANSFER_DIRECTION,
+  FILE_CONFLICT_POLICY,
 } from '../../../enums';
 import { capitalize, isPrereleaseVersion } from '../../../utils/funcs';
 import { IpcEvents } from '../../../services/ipc-events/IpcEventType';
@@ -98,6 +99,8 @@ export default class SettingsDialog extends PureComponent {
       onFilesPreprocessingBeforeTransferChange,
       onEnableUsbHotplug,
       enableUsbHotplug,
+      fileConflictPolicy,
+      onFileConflictPolicyChange,
     } = this.props;
 
     const { tabIndex } = this.state;
@@ -372,6 +375,35 @@ export default class SettingsDialog extends PureComponent {
                       }
                       label={`To ${DEVICES_LABEL[DEVICE_TYPE.mtp]}`}
                     />
+
+                    <Typography
+                      variant="subtitle2"
+                      className={`${styles.subtitle} ${styles.fmSettingsStylesFix}`}
+                    >
+                      File conflict resolution
+                    </Typography>
+                    <RadioGroup
+                      aria-label="file-conflict-policy"
+                      name="file-conflict-policy"
+                      value={fileConflictPolicy}
+                      onChange={onFileConflictPolicyChange}
+                    >
+                      <FormControlLabel
+                        value={FILE_CONFLICT_POLICY.ask}
+                        control={<Radio />}
+                        label="Ask every time (Replace / Skip dialog)"
+                      />
+                      <FormControlLabel
+                        value={FILE_CONFLICT_POLICY.skip}
+                        control={<Radio />}
+                        label="Skip existing files (Transfer new files only)"
+                      />
+                      <FormControlLabel
+                        value={FILE_CONFLICT_POLICY.replace}
+                        control={<Radio />}
+                        label="Replace and overwrite existing files"
+                      />
+                    </RadioGroup>
 
                     {freshInstall ? (
                       <Paper

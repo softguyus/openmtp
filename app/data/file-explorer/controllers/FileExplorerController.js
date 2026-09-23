@@ -270,6 +270,29 @@ class FileExplorerController {
   }
 
   /**
+   * description - Check if files exist and return status for each
+   *
+   * @param {string} deviceType
+   * @param {[string]} fileList
+   * @param {string} storageId
+   * @return {Promise<[{fullpath: string, exists: boolean}]>}
+   */
+  async checkFilesExist({ deviceType, fileList, storageId }) {
+    checkIf(deviceType, 'string');
+    checkIf(fileList, 'array');
+
+    const result = await this.repository.checkFilesExist({
+      deviceType,
+      fileList,
+      storageId,
+    });
+
+    this._sentEvent({ result, deviceType, eventKey: 'CHECK_FILES_EXIST' });
+
+    return result;
+  }
+
+  /**
    * description - Check if files exist
    *
    * @param {string} deviceType

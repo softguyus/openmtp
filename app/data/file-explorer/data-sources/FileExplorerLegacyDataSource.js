@@ -647,6 +647,45 @@ export class FileExplorerLegacyDataSource {
   }
 
   /**
+   * description - Check if files exist in the device and return status for each
+   *
+   * @param {[string]} fileList
+   * @param {string} storageId
+   * @return {Promise<[{fullpath: string, exists: boolean}]>}
+   */
+  async checkFilesExist({ fileList, storageId }) {
+    try {
+      if (!isArray(fileList) || isEmpty(fileList)) {
+        return [];
+      }
+
+      const results = [];
+
+      for (let i = 0; i < fileList.length; i += 1) {
+        const item = fileList[i];
+        const fullPath = path.resolve(item);
+
+        // eslint-disable-next-line no-await-in-loop
+        const exists = await this._checkMtpFileExists(fullPath, storageId);
+
+        results.push({
+          fullpath: item,
+          exists: !!exists,
+        });
+      }
+
+      return results;
+    } catch (e) {
+      log.error(e);
+
+      return (fileList || []).map((item) => ({
+        fullpath: item,
+        exists: false,
+      }));
+    }
+  }
+
+  /**
    * description - Check if files exist in the device
    *
    * @param {[string]} fileList
@@ -655,25 +694,9 @@ export class FileExplorerLegacyDataSource {
    */
   async filesExist({ fileList, storageId }) {
     try {
-      if (!isArray(fileList)) {
-        return false;
-      }
+      const results = await this.checkFilesExist({ fileList, storageId });
 
-      if (isEmpty(fileList)) {
-        return false;
-      }
-
-      for (let i = 0; i < fileList.length; i += 1) {
-        const item = fileList[i];
-        const fullPath = path.resolve(item);
-
-        // eslint-disable-next-line no-await-in-loop
-        if (await this._checkMtpFileExists(fullPath, storageId)) {
-          return true;
-        }
-      }
-
-      return false;
+      return results.some((a) => a.exists);
     } catch (e) {
       log.error(e);
 

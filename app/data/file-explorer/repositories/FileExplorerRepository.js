@@ -231,6 +231,41 @@ export class FileExplorerRepository {
   }
 
   /**
+   * description - Check if files exist and return status for each
+   *
+   * @param {string} deviceType
+   * @param {[string]} fileList
+   * @param {string} storageId
+   * @return {Promise<[{fullpath: string, exists: boolean}]>}
+   */
+  async checkFilesExist({ deviceType, fileList, storageId }) {
+    if (deviceType === DEVICE_TYPE.mtp) {
+      checkIf(storageId, 'number');
+
+      const selectedMtpMode = getMtpModeSetting();
+
+      switch (selectedMtpMode) {
+        case MTP_MODE.legacy:
+          return this.legacyMtpDataSource.checkFilesExist({
+            fileList,
+            storageId,
+          });
+
+        case MTP_MODE.kalam:
+        default:
+          return this.kalamMtpDataSource.checkFilesExist({
+            fileList,
+            storageId,
+          });
+      }
+    }
+
+    return this.localDataSource.checkFilesExist({
+      fileList,
+    });
+  }
+
+  /**
    * description - Check if files exist
    *
    * @param {string} deviceType

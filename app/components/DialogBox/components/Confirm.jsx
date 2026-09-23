@@ -30,6 +30,9 @@ class Confirm extends PureComponent {
       trigger,
       fullWidthDialog,
       maxWidthDialog,
+      btnPositiveText = 'Yes',
+      btnNegativeText = 'No',
+      btnNeutralText = null,
     } = this.props;
 
     return (
@@ -52,14 +55,23 @@ class Confirm extends PureComponent {
             color="secondary"
             className={classNames(styles.btnNegative)}
           >
-            No
+            {btnNegativeText}
           </Button>
+          {btnNeutralText && (
+            <Button
+              onClick={() => this._handleBtnClick({ confirm: 'skip' })}
+              color="default"
+              className={classNames(styles.btnNeutral)}
+            >
+              {btnNeutralText}
+            </Button>
+          )}
           <Button
             onClick={() => this._handleBtnClick({ confirm: true })}
             color="primary"
             className={classNames(styles.btnPositive)}
           >
-            Yes
+            {btnPositiveText}
           </Button>
         </DialogActions>
       </Dialog>

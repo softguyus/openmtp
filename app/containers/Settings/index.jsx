@@ -168,6 +168,16 @@ class Settings extends Component {
     );
   };
 
+  _handleFileConflictPolicyChange = (event, value, deviceType) => {
+    this._handleSetCommonSettingsChange(
+      {
+        key: 'fileConflictPolicy',
+        value,
+      },
+      deviceType
+    );
+  };
+
   _handleFilesPreprocessingBeforeTransferChange = (event, value, direction) => {
     const { actionCreateSetFilesPreprocessingBeforeTransfer } = this.props;
 
@@ -227,6 +237,7 @@ class Settings extends Component {
         }
         onMtpModeChange={this._handleMtpModeChange}
         onEnableUsbHotplug={this._handleEnableUsbHotplug}
+        onFileConflictPolicyChange={this._handleFileConflictPolicyChange}
         {...parentProps}
       />
     );

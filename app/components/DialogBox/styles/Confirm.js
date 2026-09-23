@@ -9,4 +9,7 @@ export const styles = (theme) => ({
   btnNegative: {
     ...mixins({ theme }).btnNegative,
   },
+  btnNeutral: {
+    ...mixins({ theme }).btnNegative,
+  },
 });

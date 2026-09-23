@@ -170,13 +170,13 @@ export class FileExplorerKalamDataSource {
   }
 
   /**
-   * description - Check if files exist in the device
+   * description - Check if files exist in the device and return status for each
    *
    * @param {[string]} fileList
    * @param {string} storageId
-   * @return {Promise<boolean>}
+   * @return {Promise<[{fullpath: string, exists: boolean}]>}
    */
-  async filesExist({ fileList, storageId }) {
+  async checkFilesExist({ fileList, storageId }) {
     checkIf(fileList, 'array');
     checkIf(storageId, 'number');
 
@@ -187,24 +187,40 @@ export class FileExplorerKalamDataSource {
       });
 
       if (error || stderr) {
-        return true;
+        return fileList.map((f) => ({ fullpath: f, exists: true }));
       }
 
       if (isEmpty(data)) {
-        return true;
+        return fileList.map((f) => ({ fullpath: f, exists: false }));
       }
 
-      const existsItems = data.filter((a) => a.exists);
-
-      return existsItems.length > 0;
+      return data.map((a) => ({
+        fullpath: a.fullpath,
+        exists: a.exists,
+      }));
     } catch (e) {
       log.error(e);
 
-      return {
-        error: e,
-        stderr: null,
-        data: null,
-      };
+      return fileList.map((f) => ({ fullpath: f, exists: true }));
+    }
+  }
+
+  /**
+   * description - Check if files exist in the device
+   *
+   * @param {[string]} fileList
+   * @param {string} storageId
+   * @return {Promise<boolean>}
+   */
+  async filesExist({ fileList, storageId }) {
+    try {
+      const results = await this.checkFilesExist({ fileList, storageId });
+
+      return results.some((a) => a.exists);
+    } catch (e) {
+      log.error(e);
+
+      return false;
     }
   }
 
