@@ -19,9 +19,6 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install global packages
-        run: |
-          npm install -g yarn @sentry/cli cross-env
 
       - name: Install dependencies
         run: |
