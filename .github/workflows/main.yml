@@ -20,12 +20,19 @@ jobs:
           node-version: 16
 
 
+      - name: Setup Python 3.11 for node-gyp
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Setup compatible npm
         run: |
           npm install -g npm@8.16.0
+          npm config set python $(which python3)
 
       - name: Install dependencies
         run: |
+          yarn config set python $(which python3)
           yarn install --ignore-engines
 
       - name: Build OpenMTP (main & renderer)
