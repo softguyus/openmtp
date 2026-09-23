@@ -46,6 +46,12 @@ The next generation of OpenMTP is in active development and coming soon. It's a 
 - Use Keyboard Shortcuts to navigate through your files.
 - No collection of personally identifiable information.
 
+### Major Changes in this Fork
+
+- **Skip Existing Files / Transfer New Files Only**: When transferring files via copy-paste or drag-and-drop, destination paths are checked beforehand. If files exist, users can choose "Skip Existing" to only transfer new files, or set a silent auto-skip preference.
+- **Configurable File Conflict Resolution**: Added setting in *Settings > File Manager > File conflict resolution* (`Ask every time`, `Skip existing files`, `Replace and overwrite`).
+- **Mac ARM (arm64) Build Support**: Added dedicated build commands (`yarn package-mac-arm64-without-notarize`) and automated ARM64 native binary packing in `electron-builder-config.js`.
+
 ### Installation
 
 > ⚠️ **Only download OpenMTP from the official sources below.** There are copycat websites that use the OpenMTP name, logo and content, redirect to various other pages. The only official sources are the official website [openmtp.ganeshrvel.com](https://openmtp.ganeshrvel.com/ 'https://openmtp.ganeshrvel.com'), this Github repository [github.com/ganeshrvel/openmtp](https://github.com/ganeshrvel/openmtp 'https://github.com/ganeshrvel/openmtp'), and [formulae.brew.sh/cask/openmtp](https://formulae.brew.sh/cask/openmtp 'Homebrew Cask').
