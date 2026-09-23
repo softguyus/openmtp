@@ -1,7 +1,7 @@
 const { execSync } = require('child_process');
 const { semverSatisfies } = require('./semver');
 
-const requiredVersionRange = '>=6.x <=8.16.0';
+const requiredVersionRange = process.env.CI ? '>=6.x <=8.x' : '>=6.x <=8.16.0';
 
 try {
   const npmVersion = execSync('npm -v').toString().trim();

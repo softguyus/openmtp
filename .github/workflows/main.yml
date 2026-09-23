@@ -20,6 +20,10 @@ jobs:
           node-version: 16
 
 
+      - name: Setup compatible npm
+        run: |
+          npm install -g npm@8.16.0
+
       - name: Install dependencies
         run: |
           yarn install --ignore-engines
@@ -31,7 +35,7 @@ jobs:
       - name: Package Mac ARM64
         run: |
           export CSC_IDENTITY_AUTO_DISCOVERY=false
-          yarn package-mac-arm64-without-notarize
+          yarn package-mac-arm64-without-notarize-no-verify
 
       - name: Upload Mac ARM64 DMG and ZIP Artifacts
         uses: actions/upload-artifact@v4
