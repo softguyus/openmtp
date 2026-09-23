@@ -1,5 +1,6 @@
 const { execSync } = require('child_process');
 const { semverSatisfies } = require('./semver');
+
 if (process.env.CI) {
   process.exit(0);
 }
